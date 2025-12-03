@@ -369,16 +369,94 @@ function bm25SearchOps(query, lang){
 }
 
 // ====== Web Speech Synthesis ======
-function speak(text){
-  if(typeof window === "undefined" || !("speechSynthesis" in window)) return;
-  if(!text) return;
-  try{
+let englishVoice = null;
+let spanishVoice = null;
+
+// Pick good EN/ES voices if available
+function pickVoices() {
+  if (!("speechSynthesis" in window)) return;
+  const voices = window.speechSynthesis.getVoices();
+  if (!voices || !voices.length) return;
+
+  // Prefer "Google" voices if present, then any EN/ES
+  englishVoice =
+    voices.find(v => v.lang.startsWith("en-US") && v.name.includes("Google")) ||
+    voices.find(v => v.lang.startsWith("en-")) ||
+    null;
+
+  spanishVoice =
+    voices.find(v => v.lang.startsWith("es-") && v.name.includes("Google")) ||
+    voices.find(v => v.lang.startsWith("es-")) ||
+    null;
+}
+
+// Some browsers load voices async
+if ("speechSynthesis" in window) {
+  window.speechSynthesis.onvoiceschanged = pickVoices;
+  pickVoices();
+}
+
+// Clean LLM text so it sounds natural when spoken
+function cleanForSpeech(text) {
+  if (!text) return "";
+
+  let t = String(text);
+
+  // Remove fenced code blocks ```...```
+  t = t.replace(/```[\s\S]*?```/g, " ");
+
+  // Remove inline code `like this`
+  t = t.replace(/`([^`]+)`/g, "$1");
+
+  // Replace Markdown bullets at the start of lines
+  // "* item" / "- item" / "+ item" → short bullet marker
+  t = t.replace(/^\s*[-*+]\s+/gm, "• ");
+
+  // Remove emphasis markers *word* or _word_
+  t = t.replace(/(\s)[*_]+([^*_]+)[*_]+(\s)/g, "$1$2$3");
+
+  // Sometimes models use a lot of "/" — soften a bit
+  // "SLA/CSAT/NPS" → "SLA, CSAT, NPS"
+  t = t.replace(/([A-Za-z0-9])\/([A-Za-z0-9])/g, "$1, $2");
+
+  // Normalize newlines into sentence breaks
+  t = t.replace(/\r/g, "");
+  t = t.replace(/\n{2,}/g, ". ");
+  t = t.replace(/\n/g, " ");
+
+  // Collapse multiple spaces
+  t = t.replace(/\s{2,}/g, " ");
+
+  return t.trim();
+}
+
+function speak(text) {
+  if (typeof window === "undefined" || !("speechSynthesis" in window)) return;
+  if (!text) return;
+
+  try {
+    const langAttr = (document.documentElement.lang || "en").toLowerCase();
+    const isEs = langAttr.startsWith("es");
+    const cleaned = cleanForSpeech(text);
     window.speechSynthesis.cancel();
-    const u = new SpeechSynthesisUtterance(text);
-    const lang = (document.documentElement.lang || "en").toLowerCase();
-    u.lang = lang.startsWith("es") ? "es-ES" : "en-US";
+    const u = new SpeechSynthesisUtterance(cleaned);
+    u.lang = isEs ? "es-ES" : "en-US";
+
+    // Attach better voice if we have one
+    if (isEs && spanishVoice) u.voice = spanishVoice;
+    if (!isEs && englishVoice) u.voice = englishVoice;
+
+    // Small tuning: English often sounds smoother a bit slower
+    if (isEs) {
+      u.rate = 1.0;
+      u.pitch = 1.0;
+    } else {
+      u.rate = 0.95;
+      u.pitch = 1.02;
+    }
+
     window.speechSynthesis.speak(u);
-  }catch(e){
+  } catch (e) {
     console.warn("Speech synthesis error:", e);
   }
 }
