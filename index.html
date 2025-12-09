@@ -3,12 +3,9 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width,initial-scale=1.0">
-<meta http-equiv="Content-Security-Policy"
-      content="default-src 'self'; connect-src 'self' https://ops-online-assistant.grabem-holdem-nuts-right.workers.dev; style-src 'self' 'unsafe-inline' https://cdnjs.cloudflare.com; font-src 'self' https://cdnjs.cloudflare.com; img-src 'self' data:; script-src 'self' 'unsafe-inline'; object-src 'none'; base-uri 'self'; frame-ancestors 'none';">
-<meta http-equiv="Referrer-Policy" content="no-referrer" />
-<title>OPS Online Assistant</title>
+<title>Chattia — OPS AI Chatbot</title>
 
-<!-- FontAwesome (CSP + SRI + CORS Safe) -->
+<!-- Patched FontAwesome (CSP + SRI + CORS Safe) -->
 <link rel="stylesheet"
   href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css"
   integrity="sha512-RXf+QSDCUqpphKAa+WAc3XQ8fE5H1aO/8e2wY+8Q1n8yVwDh1RZTf1TDN8E+u1n7eU5KyY7X2Qo+hqeZZn+UAQ=="
@@ -16,16 +13,15 @@
 
 <style>
 /* ---------- COLOR SYSTEM ---------- */
-:root{
+:root {
   --clr-primary:#00c4ff;
-  --clr-accent :#ff3bdb;
-  --clr-accent-dark:#e000be;
-  --clr-bg  :#ffffff;
+  --clr-accent:#ff3bdb;
+  --clr-bg:#ffffff;
   --clr-bg-dark:#121212;
-  --clr-tx  :#333333;
+  --clr-tx:#333333;
   --clr-tx-dark:#f0f0f0;
 }
-body{
+body {
   margin:0;
   display:flex;
   align-items:center;
@@ -36,29 +32,24 @@ body{
   color:var(--clr-tx);
   transition:background .3s,color .3s;
 }
-body.dark{
+body.dark {
   --clr-bg:var(--clr-bg-dark);
   --clr-tx:var(--clr-tx-dark);
 }
 
 /* ---------- CHATBOT ---------- */
-#chatbot-container{
+#chatbot-container {
   width:300px;
   height:540px;
-  background:linear-gradient(180deg,#f8f9ff 0%,#eef1ff 100%);
+  background:#251541;
   border:2px solid var(--clr-accent);
   border-radius:18px;
   box-shadow:0 8px 32px #0006;
   display:flex;
   flex-direction:column;
   overflow:hidden;
-  transition:background .3s,border-color .3s;
 }
-#chatbot-container.dark-skin{
-  background:linear-gradient(180deg,#0f0f19 0%,#161626 100%);
-  border-color:#5e2f86;
-}
-#chatbot-header{
+#chatbot-header {
   display:flex;
   justify-content:space-between;
   align-items:center;
@@ -66,147 +57,66 @@ body.dark{
   background:linear-gradient(135deg,var(--clr-primary) 0%,var(--clr-accent) 100%);
   color:#fff;
   font-weight:600;
-  font-size:1.05rem;
-  padding:.6rem .8rem;
+  font-size:1.1rem;
+  padding:.75rem 1rem;
 }
-#chatbot-header .ctrl{
+#chatbot-header .ctrl {
   cursor:pointer;
-  font-size:.7rem;
-  font-weight:600;
+  font-size:.75rem;
+  font-weight:500;
   user-select:none;
-  opacity:.9;
-  border:none;
-  background:transparent;
-  color:#fff;
-  padding:.15rem .4rem;
-  border-radius:6px;
-  transition:background .2s,outline .2s;
+  opacity:.85;
 }
-#chatbot-header .ctrl:focus-visible{outline:2px solid #fff;outline-offset:1px}
-#chatbot-header .ctrl:hover{opacity:1; background:#ffffff2b}
-#chatbot-header .ctrl-group{
-  display:flex;
-  align-items:center;
-  gap:.3rem;
-  font-size:.7rem;
+#chatbot-header .ctrl:hover {
+  opacity:1;
 }
-
-#mode-row{
-  display:flex;
-  align-items:center;
-  justify-content:center;
-  gap:.45rem;
-  padding:.55rem .8rem;
-  background:#f0f3ff;
-  color:#1f1f2e;
-  font-weight:600;
-  font-size:.82rem;
-  border-bottom:1px solid #e0e3f5;
-}
-#mode-row .ctrl{color:inherit}
-#mode-row .dot{opacity:.55}
-
-#chat-log{
+#chat-log {
   flex:1;
   overflow-y:auto;
   padding:1rem;
-  background:#ffffff;
-  color:#111;
+  background:#1b0e2d;
+  color:#eee;
   font-size:.94rem;
 }
-
-#controls-row{
-  display:flex;
-  justify-content:space-between;
-  align-items:center;
-  gap:.5rem;
-  padding:.4rem .8rem;
-  background:#2a1343;
-  color:#e8e8e8;
-  font-size:.8rem;
-}
-
-#privacy-banner{
-  padding:.35rem .8rem;
-  background:#2f1950;
-  color:#e8e8e8;
-  font-size:.82rem;
-}
-
-.privacy-toggle{
-  display:flex;
-  align-items:center;
-  gap:.35rem;
-  cursor:pointer;
-}
-.privacy-toggle input{accent-color:var(--clr-accent)}
-
-.sr-only{
-  position:absolute;
-  width:1px;
-  height:1px;
-  padding:0;
-  margin:-1px;
-  overflow:hidden;
-  clip:rect(0,0,0,0);
-  white-space:nowrap;
-  border:0;
-}
-
-.skip-link{
-  position:absolute;
-  left:50%;
-  transform:translateX(-50%);
-  top:-40px;
-  background:var(--clr-primary);
-  color:#000;
-  padding:.4rem .6rem;
-  border-radius:8px;
-  text-decoration:none;
-  transition:top .2s;
-  z-index:10;
-}
-.skip-link:focus{top:10px}
-.chat-msg{
+.chat-msg {
   margin:.5rem 0;
   max-width:90%;
-  word-wrap:break-word;
 }
-.user{
+.user {
   margin-left:auto;
   background:var(--clr-primary);
   color:#000;
   padding:.5rem .7rem;
   border-radius:14px 14px 0 14px;
 }
-.bot{
+.bot {
   margin-right:auto;
   background:#321b53;
   color:#fff;
   padding:.5rem .7rem;
   border-radius:14px 14px 14px 0;
 }
-#chatbot-form-container{
-  background:#f0f3ff;
+#chatbot-form-container {
+  background:#220f3a;
   border-top:1px solid var(--clr-accent);
   padding:.55rem .7rem;
 }
-#chatbot-input-row{
+#chatbot-input-row {
   display:flex;
   gap:.6rem;
 }
-#chatbot-input{
+#chatbot-input {
   flex:1;
   background:transparent;
   border:none;
-  color:#111;
+  color:#fff;
   font-size:.95rem;
   padding:.55rem .6rem;
 }
-#chatbot-input:focus{
-  outline:none;
+#chatbot-input::placeholder {
+  color:#bfbfbf;
 }
-#chatbot-send{
+#chatbot-send {
   display:flex;
   align-items:center;
   gap:6px;
@@ -219,24 +129,15 @@ body.dark{
   cursor:pointer;
   transition:.3s;
 }
-#chatbot-send i{transition:transform .3s}
-#chatbot-send:hover i{transform:rotate(-45deg)}
-#chatbot-send:disabled{
-  background:#555;
-  cursor:not-allowed;
+#chatbot-send i {
+  transition:transform .3s;
+}
+#chatbot-send:hover i {
+  transform:rotate(-45deg);
 }
 
-body.dark #chatbot-container{color:var(--clr-tx-dark)}
-body.dark #chatbot-container.dark-skin{background:linear-gradient(180deg,#0d0d0f 0%,#0e0e14 100%);border-color:#8032b6}
-body.dark #chatbot-header{background:linear-gradient(135deg,#2f1555 0%,#421c65 100%)}
-body.dark #mode-row{background:#171726;color:#f0f0ff;border-bottom-color:#23233a}
-body.dark #chat-log{background:#1b1b26;color:#f4f4ff}
-body.dark #controls-row{background:#131320;color:#e6e6ff}
-body.dark #chatbot-form-container{background:#161624}
-body.dark #chatbot-input{color:#f4f4ff}
-
-@media(max-width:480px){
-  #chatbot-container{
+@media (max-width:480px) {
+  #chatbot-container {
     height:75vh;
     width:90%;
   }
@@ -245,64 +146,35 @@ body.dark #chatbot-input{color:#f4f4ff}
 </head>
 <body>
 
-<a href="#chatbot-input" class="skip-link" data-en="Skip to chat input" data-es="Saltar al campo del chat">Skip to chat input</a>
-
 <!-- ---------- CHATBOT HTML ---------- -->
-  <div id="chatbot-container" role="dialog" aria-modal="true" aria-labelledby="title">
-    <div id="chatbot-header">
-      <span id="title"
-            data-en="OPS Online Assistant"
-            data-es="Asistente OPS en Línea">
-        OPS Online Assistant
-      </span>
-      <!-- tiny controls -->
-      <div class="ctrl-group" aria-label="Chat settings">
-        <button type="button" id="langCtrl"  class="ctrl"
-                data-en="ES" data-es="EN"
-                aria-label="Switch language">
-          ES
-        </button>
-        <span aria-hidden="true">•</span>
-        <button type="button" id="themeCtrl" class="ctrl"
-                data-en="Dark" data-es="Oscuro"
-                aria-label="Toggle theme">
-          Dark
-        </button>
-        <span aria-hidden="true">•</span>
-        <button type="button" id="resetCtrl" class="ctrl"
-                data-en="Reset" data-es="Reiniciar"
-                aria-label="Clear chat history">
-          Reset
-        </button>
-      </div>
+<div id="chatbot-container" role="dialog" aria-modal="true">
+  <div id="chatbot-header">
+    <span id="title"
+          data-en="OPS AI Chatbot"
+          data-es="Chatbot OPS AI">OPS AI Chatbot</span>
+
+    <!-- tiny controls -->
+    <div>
+      <span id="langCtrl" class="ctrl">ES</span>
+      &nbsp;|&nbsp;
+      <span id="themeCtrl" class="ctrl">Dark</span>
     </div>
-
-  <div id="privacy-banner" role="status" aria-live="polite"
-       data-en="Local chat storage is optional. Toggle it below; clear anytime."
-       data-es="El almacenamiento local del chat es opcional. Actívelo abajo; puede borrarlo en cualquier momento.">
-    Local chat storage is optional. Toggle it below; clear anytime.
   </div>
 
-  <div id="controls-row">
-    <label class="privacy-toggle">
-      <input type="checkbox" id="storageOptIn">
-      <span id="storageLabel" data-en="Remember chat on this device" data-es="Recordar el chat en este dispositivo">Remember chat on this device</span>
-    </label>
-    <div id="status" role="status" aria-live="polite" class="sr-only"></div>
-  </div>
-
-  <div id="chat-log" aria-live="polite" aria-label="Conversation"></div>
+  <div id="chat-log" aria-live="polite"></div>
 
   <div id="chatbot-form-container">
     <form id="chatbot-input-row" autocomplete="off">
-      <input id="chatbot-input" type="text" required maxlength="256"
-             placeholder="Ask about OPS services..."
-             data-en-ph="Ask about OPS services..."
-             data-es-ph="Pregunte sobre servicios OPS..."
-             aria-label="Chat message">
+      <input
+        id="chatbot-input"
+        type="text"
+        placeholder="Type your message..."
+        required
+        maxlength="256"
+        data-en-ph="Type your message..."
+        data-es-ph="Escriba su mensaje...">
       <button id="chatbot-send" type="submit" aria-label="Send">
-        <i class="fas fa-paper-plane" aria-hidden="true"></i>
-        <span class="sr-only" data-en="Send" data-es="Enviar">Send</span>
+        <i class="fas fa-paper-plane"></i>
       </button>
     </form>
   </div>
@@ -310,383 +182,89 @@ body.dark #chatbot-input{color:#f4f4ff}
 
 <!-- ---------- CHATBOT LOGIC ---------- -->
 <script>
-// ====== Helpers & config ======
 const qs  = s => document.querySelector(s);
 const qsa = s => [...document.querySelectorAll(s)];
 
-const API_URL           = "https://ops-online-assistant.grabem-holdem-nuts-right.workers.dev/api/ops-online-chat";
-const STORAGE_KEY       = "ops_online_history_v1";
-const STORAGE_OPTIN_KEY = "ops_online_history_opt_in";
-const MAX_REQUESTS_MIN  = 5;
-const MIN_GAP_MS        = 1200;
-const REQUEST_TIMEOUT   = 12000;
-const RETENTION_DAYS    = 30;
-
-// ====== Language toggle ======
-const langCtrl      = qs('#langCtrl');
-const transNodes    = qsa('[data-en]');
-const phNodes       = qsa('[data-en-ph]');
-const statusArea    = qs('#status');
-const storageOptIn  = qs('#storageOptIn');
-const isEs = () => (document.documentElement.lang || 'en').toLowerCase().startsWith('es');
-const t = (en, es) => isEs() ? es : en;
+// === Language toggle ===
+const langCtrl   = qs('#langCtrl');
+const transNodes = qsa('[data-en]');
+const phNodes    = qsa('[data-en-ph]');
 
 langCtrl.onclick = () => {
-  const toES = (langCtrl.textContent.trim().toUpperCase() === 'ES'); // going EN→ES ?
+  const toES = langCtrl.textContent === 'ES'; // going EN→ES ?
   document.documentElement.lang = toES ? 'es' : 'en';
   langCtrl.textContent = toES ? 'EN' : 'ES';
 
-  // static text
+  // text nodes
   transNodes.forEach(node => {
-    if (node.dataset.en && node.dataset.es) {
-      node.textContent = toES ? node.dataset.es : node.dataset.en;
-    }
+    node.textContent = toES ? node.dataset.es : node.dataset.en;
   });
 
   // placeholders
   phNodes.forEach(node => {
-    const enPh = node.dataset.enPh;
-    const esPh = node.dataset.esPh;
-    if (toES && esPh) node.placeholder = esPh;
-    else if (!toES && enPh) node.placeholder = enPh;
+    node.placeholder = toES ? node.dataset.esPh : node.dataset.enPh;
   });
-
-  setStatus("");
 };
 
-// ====== Theme toggle ======
+// === Theme toggle ===
 const themeCtrl = qs('#themeCtrl');
 themeCtrl.onclick = () => {
-  const dark = themeCtrl.textContent.trim().toLowerCase() === 'dark' || themeCtrl.textContent.trim().toLowerCase() === 'oscuro';
+  const dark = themeCtrl.textContent === 'Dark';
   document.body.classList.toggle('dark', dark);
-  themeCtrl.textContent = dark
-    ? (themeCtrl.dataset.en === 'Dark' ? 'Light' : 'Claro')
-    : (themeCtrl.dataset.en || 'Dark');
+  themeCtrl.textContent = dark ? 'Light' : 'Dark';
 };
 
-// ====== Status + rate limiting ======
-let requestTimes = [];
-let lastSubmitTs = 0;
+// === Chatbot core (linked to LLM Chat App Worker) ===
+const log   = qs('#chat-log');
+const form  = qs('#chatbot-input-row');
+const input = qs('#chatbot-input');
 
-function setStatus(message){
-  if(!statusArea) return;
-  statusArea.textContent = message;
-  statusArea.classList.toggle('sr-only', !message);
-}
+// Backend endpoint for Chattia
+const API_URL = 'https://ops-online-assistant.grabem-holdem-nuts-right.workers.dev/api/ops-online-chat';
 
-function withinRateLimit(){
-  const now = Date.now();
-  requestTimes = requestTimes.filter(ts => now - ts < 60000);
-  if(requestTimes.length >= MAX_REQUESTS_MIN) return false;
-  if(now - lastSubmitTs < MIN_GAP_MS) return false;
-  requestTimes.push(now);
-  lastSubmitTs = now;
-  return true;
-}
-
-// ====== Web Speech Synthesis (improved) ======
-let englishVoice = null;
-let spanishVoice = null;
-
-function pickVoices() {
-  if (!("speechSynthesis" in window)) return;
-  const voices = window.speechSynthesis.getVoices();
-  if (!voices || !voices.length) return;
-
-  // Prefer Google voices if available, then any EN/ES
-  englishVoice =
-    voices.find(v => v.lang.startsWith("en-US") && v.name.includes("Google")) ||
-    voices.find(v => v.lang.startsWith("en-")) ||
-    null;
-
-  spanishVoice =
-    voices.find(v => v.lang.startsWith("es-") && v.name.includes("Google")) ||
-    voices.find(v => v.lang.startsWith("es-")) ||
-    null;
-}
-
-if ("speechSynthesis" in window) {
-  window.speechSynthesis.onvoiceschanged = pickVoices;
-  pickVoices();
-}
-
-function cleanForSpeech(text) {
-  if (!text) return "";
-  let t = String(text);
-
-  // Remove fenced code blocks ```...```
-  t = t.replace(/```[\s\S]*?```/g, " ");
-
-  // Remove inline code `like this`
-  t = t.replace(/`([^`]+)`/g, "$1");
-
-  // Replace Markdown bullets at line starts
-  t = t.replace(/^\s*[-*+]\s+/gm, "• ");
-
-  // Remove emphasis markers *word* or _word_
-  t = t.replace(/(\s)[*_]+([^*_]+)[*_]+(\s)/g, "$1$2$3");
-
-  // Turn "SLA/CSAT/NPS" into "SLA, CSAT, NPS"
-  t = t.replace(/([A-Za-z0-9])\/([A-Za-z0-9])/g, "$1, $2");
-
-  // Normalize newlines to sentence breaks
-  t = t.replace(/\r/g, "");
-  t = t.replace(/\n{2,}/g, ". ");
-  t = t.replace(/\n/g, " ");
-
-  // Collapse multiple spaces
-  t = t.replace(/\s{2,}/g, " ");
-
-  return t.trim();
-}
-
-function speak(text) {
-  if (typeof window === "undefined" || !("speechSynthesis" in window)) return;
-  if (!text) return;
-
-  try {
-    const langAttr = (document.documentElement.lang || "en").toLowerCase();
-    const isEs = langAttr.startsWith("es");
-
-    const cleaned = cleanForSpeech(text);
-    if (!cleaned) return;
-
-    window.speechSynthesis.cancel();
-
-    const u = new SpeechSynthesisUtterance(cleaned);
-    u.lang = isEs ? "es-ES" : "en-US";
-
-    if (isEs && spanishVoice) u.voice = spanishVoice;
-    if (!isEs && englishVoice) u.voice = englishVoice;
-
-    // Slightly smoother English
-    if (isEs) {
-      u.rate = 1.0;
-      u.pitch = 1.0;
-    } else {
-      u.rate = 0.95;
-      u.pitch = 1.02;
-    }
-
-    window.speechSynthesis.speak(u);
-  } catch (e) {
-    console.warn("Speech synthesis error:", e);
-  }
-}
-
-function offlineFallback(langIsEs){
-  return langIsEs
-    ? "El asistente no está disponible en este momento. Intente nuevamente en breve."
-    : "The assistant is not available right now. Please try again shortly.";
-}
-
-function handleAssistantFailure(langIsEs, placeholder){
-  const fallback = offlineFallback(langIsEs);
-  if(placeholder){
-    placeholder.textContent = fallback;
-  }
-  chatHistory.push({ role:'assistant', content:fallback });
-  saveHistory();
-  speak(fallback);
-  setStatus(fallback);
-}
-
-// ====== Chat state + history cache ======
-const log       = qs('#chat-log');
-const form      = qs('#chatbot-input-row');
-const input     = qs('#chatbot-input');
-const send      = qs('#chatbot-send');
-const resetCtrl = qs('#resetCtrl');
-
-let chatHistory = []; // { role: 'user' | 'assistant', content: string }
-let storageAllowed = false;
-
-function addMsg(txt, cls){
+function addMsg(txt, cls) {
   const div = document.createElement('div');
   div.className = 'chat-msg ' + cls;
   div.textContent = txt;
   log.appendChild(div);
   log.scrollTop = log.scrollHeight;
-  if(cls === 'bot'){
-    div.setAttribute('tabindex','-1');
-    setTimeout(() => div.focus({preventScroll:false}), 0);
-  }
   return div;
 }
 
-function saveHistory(){
-  if(!storageAllowed) return;
-  try{
-    const trimmed = chatHistory.slice(-40); // keep last 40 turns
-    const payload = { messages: trimmed, savedAt: Date.now() };
-    localStorage.setItem(STORAGE_KEY, JSON.stringify(payload));
-  }catch(e){
-    console.warn("Cannot save history:", e);
-  }
-}
-
-function loadHistory(){
-  if(!storageAllowed) return;
-  try{
-    const raw = localStorage.getItem(STORAGE_KEY);
-    if(!raw) return;
-    const parsed = JSON.parse(raw);
-    const arr = Array.isArray(parsed) ? parsed : parsed?.messages;
-    const savedAt = parsed?.savedAt || 0;
-    if(!arr || !Array.isArray(arr)) return;
-    const ageMs = Date.now() - savedAt;
-    if(savedAt && ageMs > RETENTION_DAYS * 86400 * 1000){
-      localStorage.removeItem(STORAGE_KEY);
-      return;
-    }
-    chatHistory = arr;
-    log.innerHTML = "";
-    for(const msg of chatHistory){
-      addMsg(msg.content, msg.role === "assistant" ? "bot" : "user");
-    }
-  }catch(e){
-    console.warn("Cannot load history:", e);
-  }
-}
-
-function initStoragePreference(){
-  try{
-    storageAllowed = localStorage.getItem(STORAGE_OPTIN_KEY) === '1';
-    storageOptIn.checked = storageAllowed;
-  }catch(e){
-    storageAllowed = false;
-  }
-
-  storageOptIn.onchange = () => {
-    storageAllowed = storageOptIn.checked;
-    try{
-      if(storageAllowed){
-        localStorage.setItem(STORAGE_OPTIN_KEY, '1');
-      }else{
-        localStorage.setItem(STORAGE_OPTIN_KEY, '0');
-        localStorage.removeItem(STORAGE_KEY);
-        chatHistory = [];
-        log.innerHTML = "";
-      }
-    }catch(e){
-      console.warn('Cannot persist preference', e);
-    }
-    setStatus(storageAllowed
-      ? t('Local saving enabled.', 'Guardado local activado.')
-      : t('Local saving disabled.', 'Guardado local desactivado.'));
-
-    if(storageAllowed){
-      loadHistory();
-    }
-  };
-
-  loadHistory();
-}
-
-// Reset button: clear history + UI + stop speech
-resetCtrl.onclick = () => {
-  chatHistory = [];
-  log.innerHTML = "";
-  try { localStorage.removeItem(STORAGE_KEY); } catch(e){}
-  if (window.speechSynthesis) {
-    window.speechSynthesis.cancel();
-  }
-  setStatus(t('Chat cleared.', 'Chat borrado.'));
-};
-
-// ====== Chat submit logic (OPS-only enforced in Worker) ======
-form.onsubmit = async (e) => {
+form.onsubmit = async e => {
   e.preventDefault();
+
   const msg = input.value.trim();
-  if(!msg) return;
+  if (!msg) return;
 
-  const langIsEs = isEs();
-
-  if(!navigator.onLine){
-    setStatus(t('You appear offline. Please reconnect before sending.', 'Parece que está sin conexión. Vuelva a conectarse antes de enviar.'));
-    return;
-  }
-
-  if(!withinRateLimit()){
-    setStatus(t('Rate limit: please wait a moment before sending again.', 'Límite de velocidad: espere un momento antes de enviar de nuevo.'));
-    return;
-  }
-
-  setStatus("");
+  const lang = (document.documentElement.lang === 'es') ? 'es' : 'en';
 
   // user bubble
   addMsg(msg, 'user');
-  chatHistory.push({ role:'user', content:msg });
-  saveHistory();
-  input.value = "";
-  input.focus();
+  input.value = '';
 
-  const placeholder = addMsg('…', 'bot');
-  send.disabled = true;
+  // temporary bot bubble
+  const botDiv = addMsg('…', 'bot');
 
-  const controller = new AbortController();
-  const timeout = setTimeout(() => controller.abort(), REQUEST_TIMEOUT);
-
-  try{
-    const body = {
-      message: msg,
-      history: chatHistory,
-      lang: langIsEs ? 'es' : 'en'
-    };
-
-    const r = await fetch(API_URL, {
-      method:'POST',
-      headers:{ 'Content-Type':'application/json' },
-      body: JSON.stringify(body),
-      signal: controller.signal
+  try {
+    const res = await fetch(API_URL, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ message: msg })
     });
 
-    if(!r.ok){
-      handleAssistantFailure(langIsEs, placeholder);
-      return;
-    }
+    const data = await res.json();
+    const reply = data && data.reply
+      ? data.reply
+      : (lang === 'es' ? 'Sin respuesta.' : 'No reply.');
 
-    const d = await r.json().catch(() => ({}));
-    let reply = d.reply;
-
-    // If the backend returns an error payload, surface a friendlier offline fallback
-    // rather than the raw error string the Worker might emit.
-    if(!reply && d.error){
-      reply = offlineFallback(langIsEs);
-    }
-
-    if(!reply){
-      reply = langIsEs
-        ? "Por ahora no tengo una respuesta mejor sobre este tema."
-        : "I don’t have a better answer for this topic yet.";
-    }
-
-    placeholder.textContent = reply;
-    chatHistory.push({ role:'assistant', content:reply });
-    saveHistory();
-    speak(reply);
-  }catch(err){
-    console.error(err);
-    const errText = err.name === 'AbortError'
-      ? (langIsEs
-        ? "Tiempo de espera excedido. Intente de nuevo."
-        : "Request timed out. Please try again.")
-      : (langIsEs
-        ? "Error: no se pudo contactar a OPS Online Assistant."
-        : "Error: couldn’t reach OPS Online Assistant.");
-    placeholder.textContent = errText;
-    chatHistory.push({ role:'assistant', content:errText });
-    saveHistory();
-    speak(errText);
-    setStatus(errText);
-  }finally{
-    clearTimeout(timeout);
-    send.disabled = false;
+    botDiv.textContent = reply;
+  } catch (err) {
+    botDiv.textContent = (lang === 'es')
+      ? 'Error: no puedo conectar con Chattia.'
+      : 'Error: can’t reach Chattia.';
   }
 };
-
-// ====== Initial load ======
-initStoragePreference();
 </script>
 </body>
 </html>
