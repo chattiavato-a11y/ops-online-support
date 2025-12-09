@@ -60,14 +60,31 @@ body.dark {
   font-size:1.1rem;
   padding:.75rem 1rem;
 }
+#chatbot-header .ctrl-group {
+  display:flex;
+  align-items:center;
+  gap:.3rem;
+}
 #chatbot-header .ctrl {
   cursor:pointer;
   font-size:.75rem;
-  font-weight:500;
+  font-weight:600;
   user-select:none;
-  opacity:.85;
+  opacity:.9;
+  color:inherit;
+  background:transparent;
+  border:1px solid #fff5;
+  border-radius:6px;
+  padding:.2rem .45rem;
+  transition:background .2s, color .2s, opacity .2s;
 }
 #chatbot-header .ctrl:hover {
+  opacity:1;
+  background:#fff2;
+}
+#chatbot-header .ctrl.lang.active {
+  background:#fff;
+  color:#321b53;
   opacity:1;
 }
 #chat-log {
@@ -154,10 +171,11 @@ body.dark {
           data-es="Chatbot OPS AI">OPS AI Chatbot</span>
 
     <!-- tiny controls -->
-    <div>
-      <span id="langCtrl" class="ctrl">ES</span>
+    <div class="ctrl-group" aria-label="Language and theme controls">
+      <button type="button" class="ctrl lang active" data-lang="en">EN</button>
+      <button type="button" class="ctrl lang" data-lang="es">ES</button>
       &nbsp;|&nbsp;
-      <span id="themeCtrl" class="ctrl">Dark</span>
+      <button type="button" id="themeCtrl" class="ctrl">Dark</button>
     </div>
   </div>
 
@@ -186,25 +204,32 @@ const qs  = s => document.querySelector(s);
 const qsa = s => [...document.querySelectorAll(s)];
 
 // === Language toggle ===
-const langCtrl   = qs('#langCtrl');
-const transNodes = qsa('[data-en]');
-const phNodes    = qsa('[data-en-ph]');
+const langButtons = qsa('[data-lang]');
+const transNodes  = qsa('[data-en]');
+const phNodes     = qsa('[data-en-ph]');
 
-langCtrl.onclick = () => {
-  const toES = langCtrl.textContent === 'ES'; // going EN→ES ?
+function setLanguage(lang) {
+  const toES = lang === 'es';
   document.documentElement.lang = toES ? 'es' : 'en';
-  langCtrl.textContent = toES ? 'EN' : 'ES';
 
-  // text nodes
+  langButtons.forEach(btn => {
+    btn.classList.toggle('active', btn.dataset.lang === lang);
+  });
+
   transNodes.forEach(node => {
     node.textContent = toES ? node.dataset.es : node.dataset.en;
   });
 
-  // placeholders
   phNodes.forEach(node => {
     node.placeholder = toES ? node.dataset.esPh : node.dataset.enPh;
   });
-};
+}
+
+langButtons.forEach(btn => {
+  btn.addEventListener('click', () => setLanguage(btn.dataset.lang));
+});
+
+setLanguage(document.documentElement.lang === 'es' ? 'es' : 'en');
 
 // === Theme toggle ===
 const themeCtrl = qs('#themeCtrl');
@@ -250,7 +275,7 @@ form.onsubmit = async e => {
     const res = await fetch(API_URL.href, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ message: msg })
+      body: JSON.stringify({ message: msg, lang })
     });
 
     const data = await res.json();
