@@ -213,6 +213,12 @@ body.dark {
       <button type="button" id="speechToggle" class="ctrl"
         data-en="Speech"
         data-es="Voz">Speech</button>
+      <button id="listenCtrl" type="button" aria-label="Start voice input"
+        data-en-label="Start voice input"
+        data-es-label="Comenzar voz">
+        <i class="fas fa-microphone"></i>
+        <span class="btn-label" data-en="Speak" data-es="Hablar">Speak</span>
+      </button>
     </div>
     <form id="chatbot-input-row" autocomplete="off">
       <input
@@ -223,12 +229,6 @@ body.dark {
         maxlength="256"
         data-en-ph="Type your message..."
         data-es-ph="Escriba su mensaje...">
-      <button id="listenCtrl" type="button" aria-label="Start voice input"
-        data-en-label="Start voice input"
-        data-es-label="Comenzar voz">
-        <i class="fas fa-microphone"></i>
-        <span class="btn-label" data-en="Speak" data-es="Hablar">Speak</span>
-      </button>
       <button id="chatbot-send" type="submit" aria-label="Send">
         <i class="fas fa-paper-plane"></i>
       </button>
