@@ -3,14 +3,16 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width,initial-scale=1.0">
-<title>OPS Online Assistant — Chatbot</title>
+<title>Chattia — OPS AI Chatbot</title>
 
+<!-- Patched FontAwesome (CSP + SRI + CORS Safe) -->
 <link rel="stylesheet"
   href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css"
   integrity="sha512-RXf+QSDCUqpphKAa+WAc3XQ8fE5H1aO/8e2wY+8Q1n8yVwDh1RZTf1TDN8E+u1n7eU5KyY7X2Qo+hqeZZn+UAQ=="
   crossorigin="anonymous" referrerpolicy="no-referrer" />
 
 <style>
+/* ---------- COLOR SYSTEM ---------- */
 :root {
   --clr-primary:#00c4ff;
   --clr-accent:#ff3bdb;
@@ -34,6 +36,8 @@ body.dark {
   --clr-bg:var(--clr-bg-dark);
   --clr-tx:var(--clr-tx-dark);
 }
+
+/* ---------- CHATBOT ---------- */
 #chatbot-container {
   width:300px;
   height:540px;
@@ -47,19 +51,21 @@ body.dark {
 }
 #chatbot-header {
   display:flex;
+  justify-content:space-between;
   align-items:center;
+  gap:.5rem;
   background:linear-gradient(135deg,var(--clr-primary) 0%,var(--clr-accent) 100%);
   color:#fff;
   font-weight:600;
   font-size:1.1rem;
   padding:.75rem 1rem;
 }
-.ctrl-group {
+#chatbot-header .ctrl-group {
   display:flex;
   align-items:center;
   gap:.3rem;
 }
-.ctrl {
+#chatbot-header .ctrl {
   cursor:pointer;
   font-size:.75rem;
   font-weight:600;
@@ -72,9 +78,14 @@ body.dark {
   padding:.2rem .45rem;
   transition:background .2s, color .2s, opacity .2s;
 }
-.ctrl:hover {
+#chatbot-header .ctrl:hover {
   opacity:1;
   background:#fff2;
+}
+#chatbot-header .ctrl.lang.active {
+  background:#fff;
+  color:#321b53;
+  opacity:1;
 }
 #chat-log {
   flex:1;
@@ -107,30 +118,22 @@ body.dark {
   border-top:1px solid var(--clr-accent);
   padding:.55rem .7rem;
 }
-#chatbot-toolbar {
+#chatbot-input-row {
   display:flex;
-  align-items:center;
-  justify-content:space-between;
   gap:.6rem;
-  margin-bottom:.5rem;
-  padding:.3rem .4rem;
-  background:#2b1347;
-  border-radius:10px;
-  border:1px solid #ffb70355;
 }
 #listenCtrl {
   background:#ffb703;
   border:none;
   color:#1b0e2d;
   font-weight:700;
-  padding:.35rem .7rem;
+  padding:.45rem .65rem;
   border-radius:8px;
   cursor:pointer;
   display:flex;
   align-items:center;
   justify-content:center;
   transition:transform .2s, box-shadow .2s;
-  flex-shrink:0;
 }
 #listenCtrl .btn-label {
   margin-left:.35rem;
@@ -141,10 +144,6 @@ body.dark {
   transform:scale(1.02);
 }
 #listenCtrl i { pointer-events:none; }
-#chatbot-input-row {
-  display:flex;
-  gap:.6rem;
-}
 #chatbot-input {
   flex:1;
   background:transparent;
@@ -175,6 +174,7 @@ body.dark {
 #chatbot-send:hover i {
   transform:rotate(-45deg);
 }
+
 @media (max-width:480px) {
   #chatbot-container {
     height:75vh;
@@ -185,41 +185,29 @@ body.dark {
 </head>
 <body>
 
+<!-- ---------- CHATBOT HTML ---------- -->
 <div id="chatbot-container" role="dialog" aria-modal="true">
   <div id="chatbot-header">
     <span id="title"
-          data-en="OPS Online Assistant"
-          data-es="Asistente OPS en Línea">OPS Online Assistant</span>
+          data-en="OPS AI Chatbot"
+          data-es="Chatbot OPS AI">OPS AI Chatbot</span>
+
+    <!-- tiny controls -->
+    <div class="ctrl-group" aria-label="Language and theme controls">
+      <button type="button" class="ctrl lang active" data-lang="en">EN</button>
+      <button type="button" class="ctrl lang" data-lang="es">ES</button>
+      &nbsp;|&nbsp;
+      <button type="button" id="themeCtrl" class="ctrl">Dark</button>
+      &nbsp;|&nbsp;
+      <button type="button" id="speechToggle" class="ctrl"
+        data-en="Speech"
+        data-es="Voz">Speech</button>
+    </div>
   </div>
 
   <div id="chat-log" aria-live="polite"></div>
 
   <div id="chatbot-form-container">
-    <div id="chatbot-toolbar">
-      <div class="ctrl-group" aria-label="Language and theme controls">
-        <button type="button"
-                id="langCtrl"
-                class="ctrl"
-                data-en="EN"
-                data-es="ES">
-          EN
-        </button>
-        &nbsp;|&nbsp;
-        <button type="button" id="themeCtrl" class="ctrl">Dark</button>
-        &nbsp;|&nbsp;
-        <button type="button" id="speechToggle" class="ctrl"
-          data-en="Speech"
-          data-es="Voz">Speech</button>
-      </div>
-
-      <button id="listenCtrl" type="button" aria-label="Start voice input"
-        data-en-label="Start voice input"
-        data-es-label="Comenzar voz">
-        <i class="fas fa-microphone"></i>
-        <span class="btn-label" data-en="Speak" data-es="Hablar">Speak</span>
-      </button>
-    </div>
-
     <form id="chatbot-input-row" autocomplete="off">
       <input
         id="chatbot-input"
@@ -229,6 +217,12 @@ body.dark {
         maxlength="256"
         data-en-ph="Type your message..."
         data-es-ph="Escriba su mensaje...">
+      <button id="listenCtrl" type="button" aria-label="Start voice input"
+        data-en-label="Start voice input"
+        data-es-label="Comenzar voz">
+        <i class="fas fa-microphone"></i>
+        <span class="btn-label" data-en="Speak" data-es="Hablar">Speak</span>
+      </button>
       <button id="chatbot-send" type="submit" aria-label="Send">
         <i class="fas fa-paper-plane"></i>
       </button>
@@ -236,25 +230,25 @@ body.dark {
   </div>
 </div>
 
+<!-- ---------- CHATBOT LOGIC ---------- -->
 <script>
 const qs  = s => document.querySelector(s);
 const qsa = s => [...document.querySelectorAll(s)];
 
+/* ===== Asset ID from repo → gateway (unchanged value) ===== */
+const ASSET_ID_SHA256 = "CAFF600A21B457E5D909FD887AF48018B3CBFDDF6F9746E56238B23AF061F9E2";
+
+/* ===== Language / UI wiring ===== */
+const langButtons = qsa('[data-lang]');
 const transNodes  = qsa('[data-en]');
 const phNodes     = qsa('[data-en-ph]');
 const ariaNodes   = qsa('[data-en-label]');
 
-const langCtrl     = qs('#langCtrl');
-const themeCtrl    = qs('#themeCtrl');
 const speechToggle = qs('#speechToggle');
 const listenCtrl   = qs('#listenCtrl');
 const log   = qs('#chat-log');
 const form  = qs('#chatbot-input-row');
 const input = qs('#chatbot-input');
-
-/* Gateway Worker endpoint */
-const GATEWAY_URL = "https://ops-gateway.grabem-holdem-nuts-right.workers.dev";
-const API_URL = new URL(GATEWAY_URL + "/api/ops-online-chat");
 
 let currentLang = document.documentElement.lang === 'es' ? 'es' : 'en';
 
@@ -274,6 +268,7 @@ function updateSpeechToggleUI() {
   speechToggle.classList.toggle('active', speechEnabled);
   speechToggle.setAttribute('aria-pressed', speechEnabled ? 'true' : 'false');
 }
+
 function updateListenUI() {
   listenCtrl.classList.toggle('active', listening);
   listenCtrl.setAttribute('aria-pressed', listening ? 'true' : 'false');
@@ -297,20 +292,43 @@ function speak(text) {
   synth.speak(utter);
 }
 
-function addMsg(txt, cls) {
-  const div = document.createElement('div');
-  div.className = 'chat-msg ' + cls;
-  div.textContent = txt;
-  log.appendChild(div);
-  log.scrollTop = log.scrollHeight;
-  return div;
+function startListening() {
+  if (!recognition) return;
+  recognition.lang = currentLang === 'es' ? 'es-ES' : 'en-US';
+  listening = true;
+  updateListenUI();
+  recognition.start();
 }
 
-/* Language toggle */
+if (recognition) {
+  recognition.onresult = event => {
+    const transcript = event.results[0][0].transcript.trim();
+    if (transcript) {
+      // Dictation into the input box
+      input.value = transcript;
+      input.focus();
+    }
+  };
+
+  recognition.onerror = () => {
+    listening = false;
+    updateListenUI();
+  };
+
+  recognition.onend = () => {
+    listening = false;
+    updateListenUI();
+  };
+}
+
 function setLanguage(lang) {
   const toES = lang === 'es';
   currentLang = toES ? 'es' : 'en';
   document.documentElement.lang = currentLang;
+
+  langButtons.forEach(btn => {
+    btn.classList.toggle('active', btn.dataset.lang === lang);
+  });
 
   transNodes.forEach(node => {
     node.textContent = toES ? node.dataset.es : node.dataset.en;
@@ -329,8 +347,8 @@ function setLanguage(lang) {
   }
 }
 
-langCtrl.addEventListener('click', () => {
-  setLanguage(currentLang === 'en' ? 'es' : 'en');
+langButtons.forEach(btn => {
+  btn.addEventListener('click', () => setLanguage(btn.dataset.lang));
 });
 
 setLanguage(document.documentElement.lang === 'es' ? 'es' : 'en');
@@ -341,132 +359,89 @@ if (synth) {
   synth.onvoiceschanged = () => getVoiceForLang(currentLang);
 }
 
-/* Theme toggle */
+/* ===== Theme toggle ===== */
+const themeCtrl = qs('#themeCtrl');
 themeCtrl.onclick = () => {
   const dark = themeCtrl.textContent === 'Dark';
   document.body.classList.toggle('dark', dark);
   themeCtrl.textContent = dark ? 'Light' : 'Dark';
 };
 
-/* Speech toggle */
 speechToggle.onclick = () => {
   if (!synth) {
-    addMsg(
-      currentLang === 'es'
-        ? 'La síntesis de voz no está disponible.'
-        : 'Speech synthesis is not available.',
-      'bot'
-    );
+    addMsg(currentLang === 'es' ? 'La síntesis de voz no está disponible.' : 'Speech synthesis is not available.', 'bot');
     return;
   }
   speechEnabled = !speechEnabled;
   updateSpeechToggleUI();
 };
 
-/* Voice input */
-function startListening() {
-  if (!recognition) return;
-  recognition.lang = currentLang === 'es' ? 'es-ES' : 'en-US';
-  listening = true;
-  updateListenUI();
-  recognition.start();
-}
-
-if (recognition) {
-  recognition.onresult = event => {
-    const transcript = event.results[0][0].transcript.trim();
-    if (transcript) {
-      input.value = transcript;
-      input.focus();
-      sendMessage(transcript); // auto-send
-    }
-  };
-  recognition.onerror = () => {
-    listening = false;
-    updateListenUI();
-  };
-  recognition.onend = () => {
-    listening = false;
-    updateListenUI();
-  };
-}
-
 listenCtrl.onclick = () => {
   if (!recognition) {
-    addMsg(
-      currentLang === 'es'
-        ? 'Entrada por voz no disponible en este navegador.'
-        : 'Voice input is not available in this browser.',
-      'bot'
-    );
+    addMsg(currentLang === 'es' ? 'Entrada por voz no disponible en este navegador.' : 'Voice input is not available in this browser.', 'bot');
     return;
   }
+
   if (listening) {
     recognition.stop();
     return;
   }
+
   startListening();
 };
 
-/* Chat → gateway */
-async function sendMessage(msg) {
-  const trimmed = msg.trim();
-  if (!trimmed) return;
+/* ===== Backend endpoint: Repo → Gateway (not brain directly) ===== */
+const API_URL = new URL('https://ops-gateway.grabem-holdem-nuts-right.workers.dev/api/ops-online-chat');
 
-  const lang = (document.documentElement.lang === 'es') ? 'es' : 'en';
-
-  addMsg(trimmed, 'user');
-  input.value = '';
-  const botDiv = addMsg('…', 'bot');
-
-  try {
-    const res = await fetch(API_URL.href, {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ message: trimmed, lang })
-    });
-
-    let data = null;
-    try {
-      data = await res.json();
-    } catch {
-      const fallback = lang === 'es'
-        ? 'Error: respuesta no válida del servidor.'
-        : 'Error: invalid response from server.';
-      botDiv.textContent = fallback;
-      speak(fallback);
-      return;
-    }
-
-    if (data.reply) {
-      botDiv.textContent = data.reply;
-      speak(data.reply);
-      return;
-    }
-
-    if (data.public_error) {
-      botDiv.textContent = data.public_error;
-      speak(data.public_error);
-      console.warn("OPS error", data.error_layer, data.error_code, data.ops_error);
-      return;
-    }
-
-    const fallback = lang === 'es' ? 'Sin respuesta.' : 'No reply.';
-    botDiv.textContent = fallback;
-    speak(fallback);
-
-  } catch (err) {
-    const fallback = lang === 'es'
-      ? 'Error: no puedo conectar con el asistente.'
-      : 'Error: can’t reach the assistant.';
-    botDiv.textContent = fallback;
-    speak(fallback);
-  }
+function addMsg(txt, cls) {
+  const div = document.createElement('div');
+  div.className = 'chat-msg ' + cls;
+  div.textContent = txt;
+  log.appendChild(div);
+  log.scrollTop = log.scrollHeight;
+  return div;
 }
 
 form.onsubmit = async e => {
   e.preventDefault();
-  await sendMessage(input.value);
+
+  const msg = input.value.trim();
+  if (!msg) return;
+
+  const lang = (document.documentElement.lang === 'es') ? 'es' : 'en';
+
+  // user bubble
+  addMsg(msg, 'user');
+  input.value = '';
+
+  // temporary bot bubble
+  const botDiv = addMsg('…', 'bot');
+
+  try {
+    const res = await fetch(API_URL.href, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        // Asset ID from repo → gateway (unchanged)
+        'X-Ops-Asset-Id': ASSET_ID_SHA256
+      },
+      body: JSON.stringify({ message: msg, lang })
+    });
+
+    const data = await res.json();
+    const reply = data && data.reply
+      ? data.reply
+      : (lang === 'es' ? 'Sin respuesta.' : 'No reply.');
+
+    botDiv.textContent = reply;
+    speak(reply);
+  } catch (err) {
+    const fallback = (lang === 'es')
+      ? 'Error: no puedo conectar con el asistente OPS.'
+      : 'Error: can’t reach OPS assistant.';
+    botDiv.textContent = fallback;
+    speak(fallback);
+  }
 };
 </script>
 </body>
