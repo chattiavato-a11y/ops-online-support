@@ -37,6 +37,36 @@ body.dark {
   --clr-tx:var(--clr-tx-dark);
 }
 
+/* ---------- CONSENT BANNER ---------- */
+#consent-banner {
+  max-width:900px;
+  background:#0d0b1e;
+  color:#f5f7fb;
+  border:2px solid var(--clr-primary);
+  border-radius:14px;
+  padding:1rem 1.25rem;
+  margin-bottom:1rem;
+  box-shadow:0 10px 25px #0005;
+}
+#consent-banner a {
+  color:var(--clr-primary);
+  font-weight:600;
+}
+#consent-banner .consent-row {
+  display:flex;
+  align-items:center;
+  gap:.65rem;
+  margin-top:.75rem;
+  flex-wrap:wrap;
+}
+#consentToggle {
+  width:18px;
+  height:18px;
+}
+#consent-status {
+  font-size:.95rem;
+}
+
 /* ---------- CHATBOT ---------- */
 #chatbot-container {
   width:300px;
@@ -185,6 +215,25 @@ body.dark {
 </head>
 <body>
 
+<div id="consent-banner" role="region" aria-live="polite">
+  <p
+    data-en="We process your chat and optional voice input to respond. Audio stays in your browser; typed messages are sent to our service. Please review our"
+    data-es="Procesamos tu chat y la entrada de voz opcional para responder. El audio permanece en tu navegador; los mensajes escritos se envían a nuestro servicio. Revisa nuestra">
+    We process your chat and optional voice input to respond. Audio stays in your browser; typed messages are sent to our service. Please review our
+    <a href="#" target="_blank" rel="noreferrer noopener">Privacy Policy</a>
+    &amp;
+    <a href="#" target="_blank" rel="noreferrer noopener">Terms of Service</a>
+    before proceeding.
+  </p>
+  <div class="consent-row">
+    <label for="consentToggle" data-en="I consent to send my messages for processing." data-es="Consiento enviar mis mensajes para su procesamiento.">
+      I consent to send my messages for processing.
+    </label>
+    <input type="checkbox" id="consentToggle" aria-describedby="consent-status">
+    <span id="consent-status"></span>
+  </div>
+</div>
+
 <!-- ---------- CHATBOT HTML ---------- -->
 <div id="chatbot-container" role="dialog" aria-modal="true">
   <div id="chatbot-header">
@@ -252,6 +301,12 @@ const listenCtrl   = qs('#listenCtrl');
 const log   = qs('#chat-log');
 const form  = qs('#chatbot-input-row');
 const input = qs('#chatbot-input');
+const consentToggle = qs('#consentToggle');
+const consentStatus = qs('#consent-status');
+const sendBtn = qs('#chatbot-send');
+
+const CONSENT_KEY = 'opsChatConsent';
+let consentGranted = localStorage.getItem(CONSENT_KEY) === 'true';
 
 let currentLang = document.documentElement.lang === 'es' ? 'es' : 'en';
 
@@ -280,6 +335,32 @@ if (recognition) {
 function updateSpeechToggleUI() {
   speechToggle.classList.toggle('active', speechEnabled);
   speechToggle.setAttribute('aria-pressed', speechEnabled ? 'true' : 'false');
+}
+
+function updateConsentUI() {
+  consentToggle.checked = consentGranted;
+  const consentNeeded = !consentGranted;
+  speechToggle.disabled = consentNeeded;
+  listenCtrl.disabled = consentNeeded;
+  sendBtn.disabled = consentNeeded;
+  input.disabled = consentNeeded;
+
+  const statusText = consentGranted
+    ? (currentLang === 'es'
+      ? 'Consentimiento activo: puedes usar voz y enviar mensajes.'
+      : 'Consent granted: voice and messages are enabled.')
+    : (currentLang === 'es'
+      ? 'Activa el consentimiento para habilitar voz y envíos.'
+      : 'Turn on consent to enable voice and sending.');
+
+  consentStatus.textContent = statusText;
+  consentStatus.setAttribute('aria-live', 'polite');
+}
+
+function setConsent(granted) {
+  consentGranted = granted;
+  localStorage.setItem(CONSENT_KEY, granted ? 'true' : 'false');
+  updateConsentUI();
 }
 
 function updateListenUI() {
@@ -358,15 +439,26 @@ function setLanguage(lang) {
   if (recognition) {
     recognition.lang = toES ? 'es-ES' : 'en-US';
   }
+
+  updateConsentUI();
 }
 
 langButtons.forEach(btn => {
   btn.addEventListener('click', () => setLanguage(btn.dataset.lang));
 });
 
+consentToggle.addEventListener('change', () => setConsent(consentToggle.checked));
+
+function requireConsentMessage() {
+  return currentLang === 'es'
+    ? 'Activa el consentimiento para usar voz o enviar mensajes.'
+    : 'Please enable consent to use voice or send messages.';
+}
+
 setLanguage(document.documentElement.lang === 'es' ? 'es' : 'en');
 updateSpeechToggleUI();
 updateListenUI();
+updateConsentUI();
 
 if (synth) {
   synth.onvoiceschanged = () => getVoiceForLang(currentLang);
@@ -381,6 +473,10 @@ themeCtrl.onclick = () => {
 };
 
 speechToggle.onclick = () => {
+  if (!consentGranted) {
+    addMsg(requireConsentMessage(), 'bot');
+    return;
+  }
   if (!synth) {
     addMsg(currentLang === 'es'
       ? 'La síntesis de voz no está disponible.'
@@ -392,6 +488,10 @@ speechToggle.onclick = () => {
 };
 
 listenCtrl.onclick = () => {
+  if (!consentGranted) {
+    addMsg(requireConsentMessage(), 'bot');
+    return;
+  }
   if (!recognition) {
     addMsg(currentLang === 'es'
       ? 'Entrada por voz no disponible en este navegador.'
@@ -426,6 +526,11 @@ form.onsubmit = async e => {
 
   const msg = input.value.trim();
   if (!msg) return;
+
+  if (!consentGranted) {
+    addMsg(requireConsentMessage(), 'bot');
+    return;
+  }
 
   // If origin is not the official one, do not talk to gateway
   if (originLocked) {
