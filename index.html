@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width,initial-scale=1.0">
-<title>Chattia — OPS AI Chatbot</title>
+<title>OPS AI Chatbot</title>
 
 <!-- Patched FontAwesome (CSP + SRI + CORS Safe) -->
 <link rel="stylesheet"
@@ -235,8 +235,11 @@ body.dark {
 const qs  = s => document.querySelector(s);
 const qsa = s => [...document.querySelectorAll(s)];
 
-/* ===== Asset ID from repo → gateway (unchanged value) ===== */
-const ASSET_ID_SHA256 = "CAFF600A21B457E5D909FD887AF48018B3CBFDDF6F9746E56238B23AF061F9E2";
+/* ===== Fixed asset ID: repo → gateway (ONLY) ===== */
+const ASSET_ID = "CAFF600A21B457E5D909FD887AF48018B3CBFDDF6F9746E56238B23AF061F9E2";
+
+/* ===== Expected origin (GitHub Pages) ===== */
+const EXPECTED_ORIGIN = "https://chattiavato-a11y.github.io";
 
 /* ===== Language / UI wiring ===== */
 const langButtons = qsa('[data-lang]');
@@ -257,6 +260,16 @@ const Recognition = window.SpeechRecognition || window.webkitSpeechRecognition;
 const recognition = Recognition ? new Recognition() : null;
 let listening = false;
 let speechEnabled = false;
+
+// Security: if someone opens this file from a different origin, show a clear message
+let originLocked = false;
+if (window.location.origin !== EXPECTED_ORIGIN) {
+  originLocked = true;
+  addMsg(
+    "OPS assistant only works from " + EXPECTED_ORIGIN + "/ops-online-support/ for security reasons.",
+    "bot"
+  );
+}
 
 if (recognition) {
   recognition.continuous = false;
@@ -369,7 +382,9 @@ themeCtrl.onclick = () => {
 
 speechToggle.onclick = () => {
   if (!synth) {
-    addMsg(currentLang === 'es' ? 'La síntesis de voz no está disponible.' : 'Speech synthesis is not available.', 'bot');
+    addMsg(currentLang === 'es'
+      ? 'La síntesis de voz no está disponible.'
+      : 'Speech synthesis is not available.', 'bot');
     return;
   }
   speechEnabled = !speechEnabled;
@@ -378,7 +393,9 @@ speechToggle.onclick = () => {
 
 listenCtrl.onclick = () => {
   if (!recognition) {
-    addMsg(currentLang === 'es' ? 'Entrada por voz no disponible en este navegador.' : 'Voice input is not available in this browser.', 'bot');
+    addMsg(currentLang === 'es'
+      ? 'Entrada por voz no disponible en este navegador.'
+      : 'Voice input is not available in this browser.', 'bot');
     return;
   }
 
@@ -390,8 +407,10 @@ listenCtrl.onclick = () => {
   startListening();
 };
 
-/* ===== Backend endpoint: Repo → Gateway (not brain directly) ===== */
-const API_URL = new URL('https://ops-gateway.grabem-holdem-nuts-right.workers.dev/api/ops-online-chat');
+/* ===== Backend endpoint: repo → gateway ===== */
+const API_URL = new URL(
+  "https://ops-gateway.grabem-holdem-nuts-right.workers.dev/api/ops-online-chat"
+);
 
 function addMsg(txt, cls) {
   const div = document.createElement('div');
@@ -408,6 +427,17 @@ form.onsubmit = async e => {
   const msg = input.value.trim();
   if (!msg) return;
 
+  // If origin is not the official one, do not talk to gateway
+  if (originLocked) {
+    addMsg(
+      currentLang === 'es'
+        ? 'Por seguridad, el asistente solo está disponible desde la página oficial.'
+        : 'For security, the assistant is only available from the official site.',
+      'bot'
+    );
+    return;
+  }
+
   const lang = (document.documentElement.lang === 'es') ? 'es' : 'en';
 
   // user bubble
@@ -422,14 +452,30 @@ form.onsubmit = async e => {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
-        // Asset ID from repo → gateway (unchanged)
-        'X-Ops-Asset-Id': ASSET_ID_SHA256
+        // Asset ID from repo to gateway (ONLY)
+        'X-Ops-Asset-Id': ASSET_ID
       },
       body: JSON.stringify({ message: msg, lang })
     });
 
-    const data = await res.json();
-    const reply = data && data.reply
+    const data = await res.json().catch(() => null);
+
+    if (!data) {
+      const fallback = (lang === 'es')
+        ? 'Error: respuesta no válida del gateway.'
+        : 'Error: invalid response from gateway.';
+      botDiv.textContent = fallback;
+      speak(fallback);
+      return;
+    }
+
+    if (data.error) {
+      botDiv.textContent = data.error;
+      speak(data.error);
+      return;
+    }
+
+    const reply = data.reply
       ? data.reply
       : (lang === 'es' ? 'Sin respuesta.' : 'No reply.');
 
@@ -446,3 +492,4 @@ form.onsubmit = async e => {
 </script>
 </body>
 </html>
+
